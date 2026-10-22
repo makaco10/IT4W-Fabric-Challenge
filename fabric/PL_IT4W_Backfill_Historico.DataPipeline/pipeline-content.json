@@ -1,0 +1,99 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "items": {
+            "value": "@json('[{\"table\":\"Ventas\",\"folder\":\"ventas\"},{\"table\":\"Devoluciones\",\"folder\":\"devoluciones\"},{\"table\":\"Precios\",\"folder\":\"precios\"},{\"table\":\"Costos\",\"folder\":\"costos\"},{\"table\":\"Objetivos\",\"folder\":\"objetivos\"}]')",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "SqlServerSource",
+                  "sqlReaderQuery": {
+                    "value": "@concat('SELECT * FROM dbo.[', item().table, ']')",
+                    "type": "Expression"
+                  },
+                  "partitionOption": "None",
+                  "queryTimeout": "02:00:00",
+                  "datasetSettings": {
+                    "type": "SqlServerTable",
+                    "typeProperties": {
+                      "database": "NexoRetail_ERP"
+                    },
+                    "schema": [],
+                    "externalReferences": {
+                      "connection": "18f9e079-f812-4c61-b832-9df10f097384"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "ParquetSink",
+                  "formatSettings": {
+                    "type": "ParquetWriteSettings",
+                    "enableVertiParquet": true
+                  },
+                  "storeSettings": {
+                    "type": "LakehouseWriteSettings"
+                  },
+                  "datasetSettings": {
+                    "type": "Parquet",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "folderPath": {
+                          "value": "@concat('Landing/historico/', item().folder, '/run_id=', pipeline().RunId)",
+                          "type": "Expression"
+                        }
+                      },
+                      "compressionCodec": "snappy"
+                    },
+                    "schema": [],
+                    "linkedService": {
+                      "name": "LH_IT4W_Development",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "fe8e507b-eae5-93b7-41dd-ef02d6d8fdd8",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Files"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "translator": {
+                  "type": "TabularTranslator",
+                  "typeConversion": true,
+                  "typeConversionSettings": {
+                    "allowDataTruncation": true,
+                    "treatBooleanAsNumber": false
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "CP_BF_SQL_To_Landing",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "FE_BF_Fuentes",
+        "dependsOn": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "PL_IT4W_Backfill_Historico"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "02e1cade-7a28-95a8-4d72-326ad0f840c1"
+  }
+}
