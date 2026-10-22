@@ -32,6 +32,7 @@ from pyspark.sql import types as T
 
 spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "false")
 SCHEMAS = ("bronze", "silver", "gold", "dq_exceptions", "audit")
+
 def spark_type(type_name: str) -> T.DataType:
     # Convierte solo los tipos de explicatamente aprobados del contrato
 	
@@ -390,7 +391,7 @@ print("Esquemas disponibles:", ", ".join(SCHEMAS))
 
 # CELL ********************
 
-# Definir esquemas para Bronze, auditoría y registros con incidencias
+# Definir esquemas PySpark para Bronze, auditoría y registros con incidencias
 # Metadatos de ingesta (obligatorios). Sin PK/UNIQUE falsas.
 INGESTION_FIELDS = [
     {"name": "_batch_id", "spark_type": "STRING", "nullable": False},
@@ -453,20 +454,72 @@ print("Tablas previstas:", list(ALL_TABLE_SCHEMAS))
 
 # MARKDOWN ********************
 
-# ### . Creacion de Tablas
+# ### . Creacion de Tablas y Contrato estricto
 
 # CELL ********************
 
-def ensure_delta_table(table_name: str, expected_schema: T.StructType) -> str:
-    if spark.catalog.tableExists(table_name):
-        return "EXISTENTE; no modificada"
+REBUILD_EMPTY_TABLES = False 
 
-    empty_df = spark.createDataFrame([], schema=expected_schema)
-    (empty_df.write
-        .format("delta")
-        .mode("errorifexists")
-        .saveAsTable(table_name))
-    return "CREADA, vacia"
+def ddl_table_name(full_name: str) -> str:
+    """Cita schema.tabla para el DDL; los nombres provienen del contrato."""
+    parts = full_name.split(".")
+    if len(parts) != 2 or any(not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", x) for x in parts):
+        raise ValueError(f"Nombre de tabla inválido: {full_name!r}")
+    return ".".join(f"`{p}`" for p in parts)
+
+
+def ddl_create_delta(table_name: str, schema: T.StructType) -> None:
+    """Usa SQL solo para la declaración física de constraints."""
+    column_definitions = []
+    for field in schema.fields:
+        if not field.name.isidentifier():
+            raise ValueError(f"Nombre de columna invalido: {field.name!r}")
+        nullability = "" if field.nullable else " NOT NULL"
+        column_definitions.append(
+            f"`{field.name}` {field.dataType.simpleString().upper()}{nullability}"
+        )
+
+    ddl = (
+        f"CREATE TABLE {ddl_table_name(table_name)} (\n  "
+        + ",\n  ".join(column_definitions)
+        + "\n) USING DELTA"
+    )
+    spark.sql(ddl)
+
+
+def field_signature(schema: T.StructType):
+    return [
+        (f.name, f.dataType.simpleString(), f.nullable)
+        for f in schema.fields
+    ]
+
+
+def ensure_delta_table(table_name: str, expected_schema: T.StructType) -> str:
+    if not spark.catalog.tableExists(table_name):
+        ddl_create_delta(table_name, expected_schema)
+        return "CREADA con constraints fisicos"
+
+    actual = spark.table(table_name).schema
+    if field_signature(actual) == field_signature(expected_schema):
+        return "Existente y conforme; no modificada"
+
+    # Nunca modificar ni borrar una tabla con registros.
+    if spark.table(table_name).limit(1).count() != 0:
+        raise RuntimeError(
+            f"{table_name} tiene registros y su contrato difiere. "
+            "No se realizará ninguna modificación automática."
+        )
+
+    if not REBUILD_EMPTY_TABLES:
+        raise RuntimeError(
+            f"{table_name} existe, está vacía y su contrato difiere. "
+            "Para reconstruir SOLAMENTE tablas vacías, cambiar "
+            "REBUILD_EMPTY_TABLES=True temporalmente y volver a ejecutar."
+        )
+
+    spark.sql(f"DROP TABLE {ddl_table_name(table_name)}")
+    ddl_create_delta(table_name, expected_schema)
+    return "RECREADA (sin registros previos) con constraints físicos"
 
 
 creation_results = {
@@ -475,6 +528,7 @@ creation_results = {
 }
 for name, result in creation_results.items():
     print(f"{name}: {result}")
+
 
 # METADATA ********************
 
@@ -485,7 +539,7 @@ for name, result in creation_results.items():
 
 # MARKDOWN ********************
 
-# ### . Validacion de tablas
+# ### . Validacion de tablas — Tipos y nulabilidad fisica
 
 # CELL ********************
 
@@ -502,7 +556,7 @@ def check_schema(table_name: str, expected: T.StructType) -> None:
             "No se modificaron columnas existentes. Revisar el cambio en Git."
         )
 
-    # Confirma formato Delta 
+    # Confirma formato Delta cuando el catálogo provee información del provider.
     for _name, _type, _nullable in actual_fields:
         if _type == "void":
             raise RuntimeError(f"Tipo VOID inesperado en {table_name}.{_name}")
