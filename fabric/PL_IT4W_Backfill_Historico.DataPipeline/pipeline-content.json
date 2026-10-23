@@ -39,7 +39,7 @@
                     "enableVertiParquet": true
                   },
                   "storeSettings": {
-                    "type": "LakehouseWriteSettings"
+                    "type": "AzureBlobStorageWriteSettings"
                   },
                   "datasetSettings": {
                     "type": "Parquet",
@@ -59,8 +59,8 @@
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "fe8e507b-eae5-93b7-41dd-ef02d6d8fdd8",
-                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "artifactId": "d6d8fdd8-ef02-41dd-93b7-eae5fe8e507b",
+                          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
                           "rootFolder": "Files"
                         },
                         "annotations": []
@@ -92,13 +92,15 @@
           ]
         },
         "name": "FE_BF_Fuentes",
+        "state": "Inactive",
+        "onInactiveMarkAs": "Succeeded",
         "dependsOn": []
       },
       {
         "type": "TridentNotebook",
         "typeProperties": {
-          "notebookId": "a3577866-fe64-b5c3-4a8a-d7f3dd310d90",
-          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "notebookId": "dd310d90-d7f3-4a8a-b5c3-fe64a3577866",
+          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
           "parameters": {
             "run_id": {
               "value": "@pipeline().RunId",
@@ -121,10 +123,48 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "NB_BF_Landing_To_Bronze",
+        "name": "NB_01_Landing_To_Bronze",
+        "state": "Inactive",
+        "onInactiveMarkAs": "Succeeded",
         "dependsOn": [
           {
             "activity": "FE_BF_Fuentes",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "790b1c24-c6f8-beab-40ca-1f7f067cbd59",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "batch_id": {
+              "value": "historico_2024_2025",
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_02_Bronze_To_Silver",
+        "dependsOn": [
+          {
+            "activity": "NB_01_Landing_To_Bronze",
             "dependencyConditions": [
               "Succeeded"
             ]
