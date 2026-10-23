@@ -5,7 +5,7 @@
         "type": "ForEach",
         "typeProperties": {
           "items": {
-            "value": "@json('[{\"table\":\"Ventas\",\"folder\":\"ventas\",\"col\":\"Fecha\"},{\"table\":\"Devoluciones\",\"folder\":\"devoluciones\",\"col\":\"Fecha\"},{\"table\":\"Precios\",\"folder\":\"precios\",\"col\":\"Vigencia_Desde\"},{\"table\":\"Costos\",\"folder\":\"costos\",\"col\":\"Periodo\"},{\"table\":\"Objetivos\",\"folder\":\"objetivos\",\"col\":\"Periodo\"}]')",
+            "value": "@json('[{\"table\":\"Ventas\",\"folder\":\"ventas\",\"col\":\"Fecha\"},{\"table\":\"Devoluciones\",\"folder\":\"devoluciones\",\"col\":\"Fecha\"},{\"table\":\"Precios\",\"folder\":\"precios\",\"col\":\"Vigencia_Desde\"},{\"table\":\"Costos\",\"folder\":\"costos\",\"col\":\"Periodo\"}]')",
             "type": "Expression"
           },
           "activities": [
@@ -59,8 +59,8 @@
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "fe8e507b-eae5-93b7-41dd-ef02d6d8fdd8",
-                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "artifactId": "d6d8fdd8-ef02-41dd-93b7-eae5fe8e507b",
+                          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
                           "rootFolder": "Files"
                         },
                         "annotations": []
@@ -92,13 +92,15 @@
           ]
         },
         "name": "FE_BF_Fuentes",
+        "state": "Inactive",
+        "onInactiveMarkAs": "Succeeded",
         "dependsOn": []
       },
       {
         "type": "TridentNotebook",
         "typeProperties": {
-          "notebookId": "dd310d90-d7f3-4a8a-b5c3-fe64a3577866",
-          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
+          "notebookId": "61f91bc4-81a4-aecd-434e-c0754ddb180a",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
           "parameters": {
             "run_id": {
               "value": {
@@ -107,12 +109,18 @@
               },
               "type": "string"
             },
-            "batch_id": {
-              "value": "historico_2024_2025",
+            "periodo": {
+              "value": {
+                "value": "@pipeline().parameters.p_periodo",
+                "type": "Expression"
+              },
               "type": "string"
             },
-            "load_mode": {
-              "value": "historico",
+            "batch_id": {
+              "value": {
+                "value": "@concat('incremental_',replace(pipeline().parameters.p_periodo,'-','_'))",
+                "type": "Expression"
+              },
               "type": "string"
             }
           }
@@ -124,7 +132,54 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "NB_01_Landing_To_Bronze",
+        "name": "NB_IT4W_13_Silver_To_Gold_Incremental",
+        "dependsOn": [
+          {
+            "activity": "NB_IT4W_12_Bronze_To_Silver_Incremental",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "ef468a0d-4270-4017-b0d9-40f2b891c98c",
+          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
+          "parameters": {
+            "run_id": {
+              "value": "@pipeline().RunId",
+              "type": "string"
+            },
+            "periodo": {
+              "value": {
+                "value": "@pipeline().parameters.p_periodo",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "batch_id": {
+              "value": {
+                "value": "@concat('incremental_',replace(pipeline().parameters.p_periodo,'-','_'))",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "load_mode": {
+              "value": "incremental",
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_IT4W_11_Landing_To_Bronze_Incremental",
         "state": "Inactive",
         "onInactiveMarkAs": "Succeeded",
         "dependsOn": [
@@ -139,8 +194,8 @@
       {
         "type": "TridentNotebook",
         "typeProperties": {
-          "notebookId": "067cbd59-1f7f-40ca-beab-c6f8790b1c24",
-          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
+          "notebookId": "68aacca2-4ff5-9079-4c48-d05fa4551c24",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
           "parameters": {
             "run_id": {
               "value": {
@@ -149,8 +204,18 @@
               },
               "type": "string"
             },
+            "periodo": {
+              "value": {
+                "value": "@pipeline().parameters.p_periodo",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
             "batch_id": {
-              "value": "historico_2024_2025",
+              "value": {
+                "value": "@concat('incremental_',replace(pipeline().parameters.p_periodo,'-','_'))",
+                "type": "Expression"
+              },
               "type": "string"
             }
           }
@@ -162,50 +227,10 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "NB_02_Bronze_To_Silver",
-        "state": "Inactive",
-        "onInactiveMarkAs": "Succeeded",
+        "name": "NB_IT4W_12_Bronze_To_Silver_Incremental",
         "dependsOn": [
           {
-            "activity": "NB_01_Landing_To_Bronze",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
-      },
-      {
-        "type": "TridentNotebook",
-        "typeProperties": {
-          "notebookId": "067cbd59-1f7f-40ca-beab-c6f8790b1c24",
-          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
-          "parameters": {
-            "run_id": {
-              "value": {
-                "value": "@pipeline().RunId",
-                "type": "Expression"
-              },
-              "type": "string"
-            },
-            "batch_id": {
-              "value": "historico_2024_2025",
-              "type": "string"
-            }
-          }
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "NB_03_Silver_To_Gold",
-        "state": "Inactive",
-        "onInactiveMarkAs": "Succeeded",
-        "dependsOn": [
-          {
-            "activity": "NB_02_Bronze_To_Silver",
+            "activity": "NB_IT4W_11_Landing_To_Bronze_Incremental",
             "dependencyConditions": [
               "Succeeded"
             ]

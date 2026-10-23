@@ -56,7 +56,7 @@ from delta.tables import DeltaTable
 from pyspark.sql import functions as F, types as T, Window
 
 spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "false")
-FUENTES = ["ventas", "devoluciones", "precios", "costos", "objetivos"]
+FUENTES = ["ventas", "devoluciones", "precios", "costos"]
 KEYS = {"ventas": ["ID_Venta"], "devoluciones": ["ID_Devolución"],
         "precios": ["ID_Producto", "Vigencia_Desde"],
         "costos": ["Periodo", "ID_Producto"],

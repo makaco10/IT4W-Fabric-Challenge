@@ -65,7 +65,7 @@ if not re.fullmatch(r"20\d\d-(0[1-9]|1[0-2])", periodo):
 if load_mode != "incremental" or batch_id != "incremental_" + periodo.replace("-", "_"):
     raise ValueError("El lote y modo no corresponden al período incremental.")
 
-FUENTES = ["ventas", "devoluciones", "precios", "costos", "objetivos"]
+FUENTES = ["ventas", "devoluciones", "precios", "costos"]
 METADATA_SPECS = [
     ("_batch_id", "STRING", False),
     ("_source_file", "STRING", False),
