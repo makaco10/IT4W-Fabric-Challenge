@@ -286,6 +286,29 @@ print(f"FX VALIDADO: {len(required_set)} cotizaciones mes-moneda en historico")
 
 # MARKDOWN ********************
 
+# Modelo dimensional
+# Se construyen dimensiones de producto y tienda a partir de los datos Silver validados
+
+# CELL ********************
+
+latest_prod = Window.partitionBy("ID_Producto").orderBy(F.col("Fecha").desc(), F.col("ID_Venta").desc())
+dim_product = (ventas.withColumn("__r", F.row_number().over(latest_prod)).filter(F.col("__r") == 1)
+  .select("ID_Producto", "Nombre_Producto", F.col("Categoría_Producto").alias("Categoria_Producto"),
+          F.col("Subcategoría_Producto").alias("Subcategoria_Producto")))
+latest_store = Window.partitionBy("ID_Tienda").orderBy(F.col("Fecha").desc(), F.col("ID_Venta").desc())
+dim_store = (ventas.withColumn("__r", F.row_number().over(latest_store)).filter(F.col("__r") == 1)
+  .select("ID_Tienda", "Nombre_Tienda", country(F.col("Ubicación_Tienda")).alias("Pais"))
+  .withColumn("Moneda", currency(F.col("Pais"))))
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
 # Hechos de ventas y devoluciones
 # Mantiene ventas sin costo para poder reportar faltantes. La devolucion usa su propia fecha para la conversion.
 
@@ -350,9 +373,6 @@ d_fact = joined_d.select(
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
-# MARKDOWN ********************
-
 
 # MARKDOWN ********************
 

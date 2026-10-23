@@ -138,6 +138,44 @@
       {
         "type": "TridentNotebook",
         "typeProperties": {
+          "notebookId": "067cbd59-1f7f-40ca-beab-c6f8790b1c24",
+          "workspaceId": "fb156000-eb61-412c-90ff-773f978dc018",
+          "parameters": {
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "batch_id": {
+              "value": "historico_2024_2025",
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_02_Bronze_To_Silver",
+        "state": "Inactive",
+        "onInactiveMarkAs": "Succeeded",
+        "dependsOn": [
+          {
+            "activity": "NB_01_Landing_To_Bronze",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
           "notebookId": "790b1c24-c6f8-beab-40ca-1f7f067cbd59",
           "workspaceId": "00000000-0000-0000-0000-000000000000",
           "parameters": {
@@ -161,10 +199,10 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "NB_02_Bronze_To_Silver",
+        "name": "NB_03_Silver_To_Gold",
         "dependsOn": [
           {
-            "activity": "NB_01_Landing_To_Bronze",
+            "activity": "NB_02_Bronze_To_Silver",
             "dependencyConditions": [
               "Succeeded"
             ]
