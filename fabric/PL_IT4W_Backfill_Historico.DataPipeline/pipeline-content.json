@@ -5,7 +5,7 @@
         "type": "ForEach",
         "typeProperties": {
           "items": {
-            "value": "@json('[{\"table\":\"Ventas\",\"folder\":\"ventas\"},{\"table\":\"Devoluciones\",\"folder\":\"devoluciones\"},{\"table\":\"Precios\",\"folder\":\"precios\"},{\"table\":\"Costos\",\"folder\":\"costos\"},{\"table\":\"Objetivos\",\"folder\":\"objetivos\"}]')",
+            "value": "@json('[{\"table\":\"Ventas\",\"folder\":\"ventas\",\"filter\":\"Fecha >= DATEFROMPARTS(2024,1,1) AND Fecha < DATEFROMPARTS(2026,1,1)\"},{\"table\":\"Devoluciones\",\"folder\":\"devoluciones\",\"filter\":\"Fecha >= DATEFROMPARTS(2024,1,1) AND Fecha < DATEFROMPARTS(2026,1,1)\"},{\"table\":\"Precios\",\"folder\":\"precios\",\"filter\":\"Vigencia_Desde >= DATEFROMPARTS(2024,1,1) AND Vigencia_Desde < DATEFROMPARTS(2026,1,1)\"},{\"table\":\"Costos\",\"folder\":\"costos\",\"filter\":\"TRY_CONVERT(int, LEFT(Periodo,4)) BETWEEN 2024 AND 2025\"},{\"table\":\"Objetivos\",\"folder\":\"objetivos\",\"filter\":\"TRY_CONVERT(int, LEFT(Periodo,4)) BETWEEN 2024 AND 2025\"}]')",
             "type": "Expression"
           },
           "activities": [
@@ -15,7 +15,7 @@
                 "source": {
                   "type": "SqlServerSource",
                   "sqlReaderQuery": {
-                    "value": "@concat('SELECT * FROM dbo.[', item().table, ']')",
+                    "value": "@concat('SELECT * FROM dbo.[', item().table, '] WHERE ', item().filter)\n",
                     "type": "Expression"
                   },
                   "partitionOption": "None",
