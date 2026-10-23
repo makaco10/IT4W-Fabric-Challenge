@@ -93,7 +93,7 @@ ORDER BY Categoria_Producto
 
 -- MARKDOWN ********************
 
--- ## **2.Venta bruta 2025 por pais, moneda local**
+-- ## **3.Venta bruta 2025 por pais, moneda local**
 -- Utilizamos las conversiones registradas en Gold y agrupamos por pais y moneda. No sumamos importes de distintas divisas.
 
 
