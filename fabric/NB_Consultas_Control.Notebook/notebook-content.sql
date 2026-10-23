@@ -198,33 +198,13 @@ ORDER BY ID_Producto
 
 -- CELL ********************
 
-
+-- Control de idempotencia
 SELECT
-    COUNT(*) AS Filas_Ventas_Final,
-    COUNT(DISTINCT ID_Venta)
-        AS IDs_Venta_Distintos,
-    COUNT(*) - COUNT(DISTINCT ID_Venta)
-        AS Duplicados_ID_Venta
-FROM gold.fact_ventas
-
-
--- METADATA ********************
-
--- META {
--- META   "language": "sparksql",
--- META   "language_group": "synapse_pyspark"
--- META }
-
--- CELL ********************
-
-
-
-
-SELECT
-    COUNT_BIG(*) AS Total_Ventas,
-    COUNT_BIG(DISTINCT ID_Venta) AS Ventas_Unicas,
-    COUNT_BIG(*) - COUNT_BIG(DISTINCT ID_Venta) AS Duplicados
+    COUNT(*) AS Total_Ventas,
+    COUNT(DISTINCT ID_Venta) AS Ventas_Unicas,
+    COUNT(*) - COUNT(DISTINCT ID_Venta) AS Duplicados
 FROM gold.fact_ventas;
+
 
 
 -- METADATA ********************
