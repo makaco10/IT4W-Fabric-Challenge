@@ -93,6 +93,43 @@
         },
         "name": "FE_BF_Fuentes",
         "dependsOn": []
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "a3577866-fe64-b5c3-4a8a-d7f3dd310d90",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "run_id": {
+              "value": "@pipeline().RunId",
+              "type": "string"
+            },
+            "batch_id": {
+              "value": "historico_2024_2025",
+              "type": "string"
+            },
+            "load_mode": {
+              "value": "historico",
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_BF_Landing_To_Bronze",
+        "dependsOn": [
+          {
+            "activity": "FE_BF_Fuentes",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       }
     ]
   }
